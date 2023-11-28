@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Auto Labeling with ChatGPT
-        uses: nikpivkin/auto-label@latest
+        uses: nikpivkin/auto-label@v0
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           gh-token: ${{ secrets.MY_PERSONAL_GH_TOKEN }}

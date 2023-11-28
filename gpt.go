@@ -16,7 +16,7 @@ type labelingAssistant struct {
 
 func newLabelingAssistant(token string, model string, httpClient *http.Client) *labelingAssistant {
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = &http.Client{}
 	}
 
 	clientCfg := openai.DefaultConfig(token)

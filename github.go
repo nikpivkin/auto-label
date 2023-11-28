@@ -17,7 +17,7 @@ type GitHubGraphQLClient struct {
 
 func NewGithubClient(token string, endpoint string, client *http.Client) *GitHubGraphQLClient {
 	if client == nil {
-		client = http.DefaultClient
+		client = &http.Client{}
 	}
 
 	return &GitHubGraphQLClient{
@@ -93,19 +93,19 @@ func (c *GitHubGraphQLClient) request(ctx context.Context, payload string) ([]by
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("bearer %s", c.token))
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		defer resp.Body.Close()
+
 		b, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read body: %w", err)
 		}
 		return nil, fmt.Errorf("status code: %d, body: %s", resp.StatusCode, string(b))
-
 	}
 
 	var r ghResponse

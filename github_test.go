@@ -10,6 +10,8 @@ import (
 )
 
 func TestFetchRepoLabels(t *testing.T) {
+	t.Parallel()
+
 	t.Run("happy", func(t *testing.T) {
 		fakeResponse := `{
   "data": {
@@ -84,6 +86,7 @@ func TestFetchRepoLabels(t *testing.T) {
 }
 
 func TestReplaceLabels(t *testing.T) {
+	t.Parallel()
 
 	t.Run("happy", func(t *testing.T) {
 		fakeResponse := `{
@@ -156,7 +159,7 @@ func TestReplaceLabels(t *testing.T) {
 }
 
 func newFakeGhClient(statusCode int, response string) *GitHubGraphQLClient {
-	httpClient := http.DefaultClient
+	httpClient := &http.Client{}
 	httpClient.Transport = &fakeTransport{statusCode: statusCode, response: response}
 	client := NewGithubClient("token", "url", httpClient)
 	return client

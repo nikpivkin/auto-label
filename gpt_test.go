@@ -10,9 +10,10 @@ import (
 )
 
 func TestGetLabels(t *testing.T) {
+	t.Parallel()
 
 	mockResponse := `{"choices": [{"message": {"content": "suggestion1,suggestion2"}}]}`
-	httpClient := http.DefaultClient
+	httpClient := &http.Client{}
 	httpClient.Transport = &fakeTransport{statusCode: 200, response: mockResponse}
 
 	assistant := newLabelingAssistant("key", openai.GPT3Dot5TurboInstruct, httpClient)

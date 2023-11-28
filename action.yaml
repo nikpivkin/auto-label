@@ -1,0 +1,35 @@
+name: "ChatGPT Auto Labeler Action"
+description: "Auto assigns labels to issues, discussions, and pull requests based on ChatGPT responses."
+author: "Nikita Pivkin"
+inputs:
+  openai-api-key:
+    description: "API token for ChatGPT."
+    required: true
+  gpt-model:
+    description: "The chat-gpt model used"
+    required: false
+    default: "gpt-3.5-turbo"
+  gh-token:
+    description: "GitHub personal access token."
+    required: true
+  timeout:
+    description: "Timeout in seconds."
+    required: false
+    default: "60"
+  details:
+    description: "Additional details for label suggestions. For example: SBOM is not misconfig."
+    required: false
+runs:
+  using: "docker"
+  image: 'docker://ghcr.io/nikpivkin/auto-label:latest'
+  args:
+    - '-gpt-model=${{ inputs.gpt-model }}'
+    - '-timeout=${{ inputs.timeout }}'
+    - '-details=${{ inputs.details }}'
+  env:
+    OPENAI_API_KEY: ${{ inputs.openai-api-key }}
+    GITHUB_TOKEN: ${{ inputs.gh-token }}
+
+branding:
+  icon: 'moon'
+  color: 'blue'

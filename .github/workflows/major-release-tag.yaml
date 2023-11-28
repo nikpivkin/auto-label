@@ -1,0 +1,31 @@
+# Source https://github.com/github/issue-metrics/blob/main/.github/workflows/major-version-updater.yml
+
+name: Update Major Tag
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  update-major-tag:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: version
+      id: version
+      run: |
+        tag=${GITHUB_REF/refs\/tags\//}
+        version=${tag#v}
+        major=${version%%.*}
+        echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+        echo "version=${version}" >> "$GITHUB_OUTPUT"
+        echo "major=${major}" >> "$GITHUB_OUTPUT"
+
+    - name: force update major tag
+      run: |
+        git tag v${{ steps.version.outputs.major }}
+        git push origin refs/tags/v${{ steps.version.outputs.major }} -f

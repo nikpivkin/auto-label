@@ -1,0 +1,23 @@
+name: Auto Labeling
+
+on:
+  issues:
+    types:
+      - opened
+  pull_request:
+    types:
+      - opened
+  discussion:
+    types:
+      - created
+
+jobs:
+  auto-label:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Auto Labeling with ChatGPT
+        uses: ./
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          gh-token: ${{ secrets.GITHUB_TOKEN }}

@@ -42,25 +42,18 @@ func (c *GitHubGraphQLClient) ReplaceLabels(ctx context.Context, labelableID str
 
 type gqlRepo struct {
 	Labels struct {
-		Nodes []struct {
-			Name        string `json:"name"`
-			Description string `json:"description"`
-			ID          string `json:"id"`
-		} `json:"nodes"`
+		Nodes []Label `json:"nodes"`
 	} `json:"labels"`
 }
 
-func (r gqlRepo) labels() labels {
-	var res labels
-	for _, l := range r.Labels.Nodes {
-		res = append(res, label{
-			ID:   l.ID,
-			name: l.Name,
-			desc: l.Description,
-		})
-	}
+type Label struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	ID          string `json:"id"`
+}
 
-	return res
+func (r gqlRepo) labels() []Label {
+	return r.Labels.Nodes
 }
 
 func buildGetLabelsRequest(owner, name string) string {
@@ -68,7 +61,7 @@ func buildGetLabelsRequest(owner, name string) string {
 	return fmt.Sprintf(tpl, owner, name)
 }
 
-func (c *GitHubGraphQLClient) FetchRepoLabels(ctx context.Context, owner, repo string) (labels, error) {
+func (c *GitHubGraphQLClient) FetchRepoLabels(ctx context.Context, owner, repo string) ([]Label, error) {
 	data, err := c.request(ctx, buildGetLabelsRequest(owner, repo))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch labels: %w", err)

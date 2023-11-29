@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -11,7 +10,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"text/tabwriter"
 	"time"
 
 	"github.com/sashabaranov/go-openai"
@@ -93,8 +91,13 @@ func run(cfg config) error {
 
 	assistant := newLabelingAssistant(cfg.gptToken, cfg.gptModel, nil)
 
+	labels, err := json.Marshal(availableLabels)
+	if err != nil {
+		return fmt.Errorf("failed to marshal labels: %w", err)
+	}
+
 	gptsLabels, err := assistant.GetLabels(ctx, getLabelsRequest{
-		labels:  availableLabels.String(),
+		labels:  string(labels),
 		payload: payload.String(),
 		details: cfg.details,
 	})
@@ -149,25 +152,4 @@ func payloadFromEvent(eventName string, r io.Reader) (payload, error) {
 	}
 
 	return payload{}, errors.New("invalid event")
-}
-
-type (
-	labels []label
-
-	label struct {
-		ID   string
-		name string
-		desc string
-	}
-)
-
-func (l labels) String() string {
-	buf := new(bytes.Buffer)
-	w := tabwriter.NewWriter(buf, 0, 0, 1, ' ', tabwriter.Debug)
-	fmt.Fprintf(w, "ID\tName\tDescription\n")
-	for _, ll := range l {
-		fmt.Fprintf(w, "%s\t%s\t%s\n", ll.ID, ll.name, ll.desc)
-	}
-	w.Flush()
-	return buf.String()
 }

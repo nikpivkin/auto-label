@@ -42,10 +42,10 @@ func TestFetchRepoLabels(t *testing.T) {
 		repoLabels, err := client.FetchRepoLabels(context.TODO(), "owner", "repo")
 		require.NoError(t, err)
 
-		expected := labels{
-			{ID: "MDU6TGFiZWw1NTU0NDg4MA==", name: "bug", desc: "Something isn't working"},
-			{ID: "MDU6TGFiZWw1NTU0NDg4MQ==", name: "enhancement", desc: "New feature or request"},
-			{ID: "MDU6TGFiZWw1NTU0NDg4Mg==", name: "question", desc: "Further information is requested"},
+		expected := []Label{
+			{ID: "MDU6TGFiZWw1NTU0NDg4MA==", Name: "bug", Description: "Something isn't working"},
+			{ID: "MDU6TGFiZWw1NTU0NDg4MQ==", Name: "enhancement", Description: "New feature or request"},
+			{ID: "MDU6TGFiZWw1NTU0NDg4Mg==", Name: "question", Description: "Further information is requested"},
 		}
 		assert.Equal(t, expected, repoLabels)
 	})

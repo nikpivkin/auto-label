@@ -21,3 +21,4 @@ jobs:
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           gh-token: ${{ secrets.GITHUB_TOKEN }}
+          details: "Our product is an GitHub action that uses ChatGPT to automatically assign labels to github issues, discussions and PRs based on their title and content."

@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths-ignore:
       - '**.md'
+      - '.github/workflows/auto-labeling.yaml'
   pull_request:
     branches: [main]
     paths-ignore:
       - '**.md'
+      - '.github/workflows/auto-labeling.yaml'
 
 jobs:
   unit-tests:

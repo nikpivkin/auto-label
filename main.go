@@ -149,7 +149,7 @@ The ChatGPT Auto Labeler has analyzed the title and content of this %s and assig
 	body = fmt.Sprintf(body, artifactName)
 
 	for _, l := range r.Labels {
-		body += fmt.Sprintf("- **%s**: %s", l.Name, l.Explanation)
+		body += fmt.Sprintf("- **%s**: %s\n", l.Name, l.Explanation)
 	}
 
 	body += "\n\n" + r.Explanation
@@ -160,7 +160,7 @@ The ChatGPT Auto Labeler has analyzed the title and content of this %s and assig
 
 	for _, l := range r.Labels {
 		labelURL := fmt.Sprintf("https://github.com/%s/%s/labels/%s", repoOwner, repoName, url.QueryEscape(l.Name))
-		body += fmt.Sprintf("- [%s](%s)", l.Name, labelURL)
+		body += fmt.Sprintf("- [%s](%s)\n", l.Name, labelURL)
 	}
 
 	footer := "\n\n*Note: This message is generated automatically, and the labels were assigned based on the analysis of the %s's content.*"

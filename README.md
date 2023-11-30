@@ -9,11 +9,15 @@ The ChatGPT Auto Labeler Action is a GitHub Action that automatically assigns la
 To use this action, you need to set up the necessary inputs and provide your ChatGPT API token.
 
 ## Inputs
-- `openai-api-key` (required): API token for ChatGPT.
-- `gh-token` (required): GitHub personal access token.
-- `timeout` (optional): Timeout for ChatGPT API requests in seconds.
-- `details` (optional): Additional details for label suggestions. For example: SBOM is not misconfig.
-- `excluded-labels` (optional): A comma-separated list of labels to exclude from automatic assignment. For example: 'bug,duplicate'.
+
+| Name | Description | Default |
+|---|---|---|
+| `openai-api-key` | API token for ChatGPT. | Required |
+| `gpt-model` | The ChatGPT model used. See available models [here](https://github.com/sashabaranov/go-openai/blob/master/completion.go#L20). | "gpt-3.5-turbo" |
+| `gh-token` | GitHub personal access token. | |
+| `timeout` | Timeout in seconds. | 60 |
+| `details` | Additional details for label suggestions. For example: SBOM is not misconfig. | |
+| `excluded-labels` | A comma-separated list of labels to exclude from automatic assignment. | |
 
 ## Example Workflow
 Create a workflow file (e.g., `.github/workflows/auto-labeling.yaml`) with the following content:

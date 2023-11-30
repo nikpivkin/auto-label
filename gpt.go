@@ -103,7 +103,7 @@ Body: Some body
 Consider the context of the discussion title and text when assigning labels.
 `
 	if details != "" {
-		systemPrompt += fmt.Sprintf("Some details:\n%s\n", details)
+		systemPrompt += fmt.Sprintf("Also consider the details when assigning labels:\n%s\n", details)
 	}
 	systemPrompt += fmt.Sprintf("The following labels are available to you in json format:\n%s\n", labels)
 	systemPrompt += `Provide the answer as json. For example:

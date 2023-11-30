@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -30,6 +31,7 @@ type config struct {
 	eventName       string
 	eventPath       string
 	details         string
+	excludedLabels  []string
 	gptToken        string
 	gptModel        string
 	ghToken         string
@@ -48,8 +50,9 @@ const (
 func main() {
 
 	timeout := flag.Int("timeout", defaultTimeoutS, fmt.Sprintf("timeout in seconds (default %ds)", defaultTimeoutS))
-	gptModel := flag.String("gpt-model", openai.GPT3Dot5Turbo, fmt.Sprintf("the chat-gpt model used. (default %s)", openai.GPT3Dot5Turbo))
-	details := flag.String("details", "", "additional details for label suggestions.")
+	gptModel := flag.String("gpt-model", openai.GPT3Dot5Turbo, fmt.Sprintf("the chat-gpt model used (default %s)", openai.GPT3Dot5Turbo))
+	details := flag.String("details", "", "additional details for label suggestions")
+	excludedLabels := flag.String("excluded-labels", "", "a comma-separated list of labels to exclude from automatic assignment. For example: 'bug,duplicate'")
 
 	flag.Parse()
 
@@ -61,6 +64,7 @@ func main() {
 		eventName:       envOrFatal("GITHUB_EVENT_NAME"),
 		eventPath:       envOrFatal("GITHUB_EVENT_PATH"),
 		details:         *details,
+		excludedLabels:  strings.Split(*excludedLabels, ","),
 		gptToken:        envOrFatal("OPENAI_API_KEY"),
 		gptModel:        *gptModel,
 		ghToken:         envOrFatal("GITHUB_TOKEN"),
@@ -85,6 +89,8 @@ func run(cfg config) error {
 	if err != nil {
 		return err
 	}
+
+	availableLabels = filterLabels(availableLabels, cfg.excludedLabels)
 
 	ef, err := os.Open(cfg.eventPath)
 	if err != nil {
@@ -137,6 +143,25 @@ func run(cfg config) error {
 	}
 
 	return nil
+}
+
+func filterLabels(labels []Label, excluded []string) []Label {
+	if len(excluded) == 0 {
+		return labels
+	}
+
+	var filtered []Label
+
+	for _, l := range labels {
+		exist := slices.ContainsFunc(excluded, func(s string) bool {
+			return strings.EqualFold(l.Name, s)
+		})
+
+		if !exist {
+			filtered = append(filtered, l)
+		}
+	}
+	return filtered
 }
 
 func createComment(artifactName string, repoOwner string, repoName string, r getLabelsResponse) string {

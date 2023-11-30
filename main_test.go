@@ -93,3 +93,57 @@ func TestPayloadFromEvent(t *testing.T) {
 		})
 	}
 }
+
+func TestFilterLabels(t *testing.T) {
+	type args struct {
+		labels   []Label
+		excluded []string
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected []Label
+	}{
+		{
+			name: "empty available labels",
+			args: args{
+				labels:   []Label{},
+				excluded: []string{"bug"},
+			},
+			expected: nil,
+		},
+		{
+			name: "empty excluded",
+			args: args{
+				labels: []Label{
+					{Name: "bug"},
+					{Name: "doc"},
+				},
+				excluded: []string{},
+			},
+			expected: []Label{
+				{Name: "bug"},
+				{Name: "doc"},
+			},
+		},
+		{
+			name: "happy",
+			args: args{
+				labels: []Label{
+					{Name: "bug"},
+					{Name: "doc"},
+				},
+				excluded: []string{"bug", "todo"},
+			},
+			expected: []Label{
+				{Name: "doc"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, filterLabels(tt.args.labels, tt.args.excluded))
+		})
+	}
+}

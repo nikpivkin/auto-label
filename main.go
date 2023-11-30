@@ -196,10 +196,14 @@ func payloadFromEvent(eventName string, r io.Reader) (payload, error) {
 	}
 
 	if m, ok := obj.(map[string]any); ok {
-		title := m["title"].(string)
-		body := m["body"].(string)
-		id := m["node_id"].(string)
-		return payload{title: title, body: body, nodeID: id}, nil
+		p := payload{}
+		p.nodeID = m["node_id"].(string)
+		p.title = m["title"].(string)
+		if body, ok := m["body"].(string); ok {
+			p.body = body
+		}
+
+		return p, nil
 	}
 
 	return payload{}, errors.New("invalid event")

@@ -65,6 +65,20 @@ func TestPayloadFromEvent(t *testing.T) {
 			},
 			expected: payload{title: "Some title", body: "Some body", nodeID: "D_kwDOKgkPac4AWfor"},
 		},
+		{
+			name: "pull_request opened with empty body",
+			args: args{
+				eventName: "pull_request",
+				event: `{
+					"action": "opened",
+					"pull_request": {
+						"title": "Some title",
+						"node_id": "D_kwDOKgkPac4AWfor"
+					}
+				}`,
+			},
+			expected: payload{title: "Some title", nodeID: "D_kwDOKgkPac4AWfor"},
+		},
 	}
 
 	for _, tt := range tests {

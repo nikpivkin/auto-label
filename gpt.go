@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/sashabaranov/go-openai"
 )
@@ -31,9 +32,30 @@ type getLabelsRequest struct {
 	details string
 }
 
-func (a labelingAssistant) GetLabels(ctx context.Context, request getLabelsRequest) ([]string, error) {
+type chosenLabel struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Explanation string `json:"explanation"`
+}
+
+type getLabelsResponse struct {
+	Labels      []chosenLabel `json:"labels"`
+	Explanation string        `json:"explanation"`
+}
+
+func (r getLabelsResponse) labelIDs() []string {
+	var ids []string
+	for _, label := range r.Labels {
+		ids = append(ids, label.ID)
+	}
+	return ids
+}
+
+var ErrEmptyMessage = errors.New("empty message")
+
+func (a labelingAssistant) GetLabels(ctx context.Context, request getLabelsRequest) (getLabelsResponse, error) {
 	prompt := buildPrompt(request.payload, request.labels, request.details)
-	resp, err := a.client.CreateChatCompletion(
+	chatResponse, err := a.client.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
 			Model:    a.model,
@@ -41,15 +63,20 @@ func (a labelingAssistant) GetLabels(ctx context.Context, request getLabelsReque
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create completion: %w", err)
+		return getLabelsResponse{}, fmt.Errorf("failed to create completion: %w", err)
 	}
 
-	msg := resp.Choices[0].Message.Content
+	msg := chatResponse.Choices[0].Message.Content
 	if msg == "" {
-		return nil, nil
+		return getLabelsResponse{}, ErrEmptyMessage
 	}
 
-	return strings.Split(msg, ","), nil
+	var resp getLabelsResponse
+	if err := json.Unmarshal([]byte(msg), &resp); err != nil {
+		return getLabelsResponse{}, fmt.Errorf("failed to unmarshal message: %w", err)
+	}
+
+	return resp, nil
 }
 
 func buildPrompt(payload, labels, details string) []openai.ChatCompletionMessage {
@@ -79,6 +106,29 @@ Consider the context of the discussion title and text when assigning labels.
 		systemPrompt += fmt.Sprintf("Some details:\n%s\n", details)
 	}
 	systemPrompt += fmt.Sprintf("The following labels are available to you in json format:\n%s\n", labels)
-	systemPrompt += `Provide the response as a string. The response should contain only label identifiers ("id" key from the json above) separated by commas and nothing else. For example: "LA_kwDOJrb9oM8AAAABTLsvXA, LA_kwDOJrb9oM8AAAABTLsvXQ"`
+	systemPrompt += `Provide the answer as json. For example:
+{
+  "labels": [
+    {
+      "id": 1,
+      "name": "bug",
+      "explanation": "Found a bug in the code."
+    },
+    {
+      "id": 2,
+      "name": "enhancement",
+      "explanation": "Proposing an enhancement to the functionality."
+    },
+    {
+      "id": 3,
+      "name": "question",
+      "explanation": "A question that requires clarification."
+    }
+  ],
+  "explanation": "A general explanation of the choice of labels"
+}
+
+The "id" field is the label identifier and "explanation" is an explanation of why you chose that label.
+`
 	return systemPrompt
 }

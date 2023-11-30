@@ -92,26 +92,7 @@ func TestReplaceLabels(t *testing.T) {
 		fakeResponse := `{
   "data": {
     "addLabelsToLabelable": {
-      "clientMutationId": null,
-      "labelable": {
-        "id": "MDU6SXNzdWUzOTk5MDE2MTg=",
-        "labels": {
-          "nodes": [
-            {
-              "id": "MDU6TGFiZWw1NTU0NDg4MA==",
-              "name": "bug",
-              "description": "Something isn't working",
-              "color": "d73a4a"
-            },
-            {
-              "id": "MDU6TGFiZWw1NTU0NDg4MQ==",
-              "name": "enhancement",
-              "description": "New feature or request",
-              "color": "a2eeef"
-            }
-          ]
-        }
-      }
+      "clientMutationId": null
     }
   }
 }`
@@ -155,7 +136,103 @@ func TestReplaceLabels(t *testing.T) {
 		require.Error(t, err)
 		assert.ErrorContains(t, err, "status code: 500")
 	})
+}
 
+func TestAddComment(t *testing.T) {
+	t.Parallel()
+
+	t.Run("happy", func(t *testing.T) {
+		fakeResponse := `{
+  "data": {
+    "addComment": {
+      "clientMutationId": "your_client_mutation_id_here"
+    }
+  }
+}`
+		client := newFakeGhClient(200, fakeResponse)
+		err := client.AddComment(context.TODO(), "some_id", "some_body")
+		require.NoError(t, err)
+	})
+
+	t.Run("with errors", func(t *testing.T) {
+		fakeResponse := `{
+  "errors": [
+    {
+      "message": "Node with subjectId not found. Please check the provided identifier.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "path": ["addComment"]
+    }
+  ],
+  "data": null
+}`
+
+		client := newFakeGhClient(200, fakeResponse)
+		err := client.AddComment(context.TODO(), "some_id", "some_body")
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "Node with subjectId not found. Please check the provided identifier.")
+	})
+
+	t.Run("not 200 status", func(t *testing.T) {
+		client := newFakeGhClient(500, "")
+		err := client.AddDiscussionComment(context.TODO(), "some_id", "some_body")
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "status code: 500")
+	})
+}
+
+func TestAddDiscussionComment(t *testing.T) {
+	t.Parallel()
+
+	t.Run("happy", func(t *testing.T) {
+		fakeResponse := `{
+  "data": {
+    "addDiscussionComment": {
+      "clientMutationId": "your_client_mutation_id_here"
+    }
+  }
+}`
+
+		client := newFakeGhClient(200, fakeResponse)
+		err := client.AddDiscussionComment(context.TODO(), "some_id", "some_body")
+		require.NoError(t, err)
+	})
+
+	t.Run("with errors", func(t *testing.T) {
+		fakeResponse := `{
+  "errors": [
+    {
+      "message": "Error in executing the query. Please check the parameters.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "path": ["addDiscussionComment"]
+    }
+  ],
+  "data": {
+    "addDiscussionComment": null
+  }
+}`
+
+		client := newFakeGhClient(200, fakeResponse)
+		err := client.AddDiscussionComment(context.TODO(), "some_id", "some_body")
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "Error in executing the query. Please check the parameters.")
+	})
+
+	t.Run("not 200 status", func(t *testing.T) {
+		client := newFakeGhClient(500, "")
+		err := client.AddDiscussionComment(context.TODO(), "some_id", "some_body")
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "status code: 500")
+	})
 }
 
 func newFakeGhClient(statusCode int, response string) *GitHubGraphQLClient {

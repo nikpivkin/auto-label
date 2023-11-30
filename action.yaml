@@ -19,13 +19,19 @@ inputs:
   details:
     description: "Additional details for label suggestions. For example: SBOM is not misconfig."
     required: false
+  excluded-labels:
+    description: |
+       "A comma-separated list of labels to exclude from automatic assignment. For example: 'bug,duplicate'."
+    required: false
+
 runs:
   using: "docker"
   image: 'docker://ghcr.io/nikpivkin/auto-label:latest'
   args:
     - '-gpt-model=${{ inputs.gpt-model }}'
     - '-timeout=${{ inputs.timeout }}'
-    - '-details=${{ inputs.details }}'
+    - '-details="${{ inputs.details }}"'
+    - '-excluded-labels="${{ inputs.excluded-labels }}"'
   env:
     OPENAI_API_KEY: ${{ inputs.openai-api-key }}
     GITHUB_TOKEN: ${{ inputs.gh-token }}

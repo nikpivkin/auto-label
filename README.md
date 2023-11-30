@@ -10,6 +10,7 @@ To use this action, you need to set up the necessary inputs and provide your Cha
 - `gh-token` (required): GitHub personal access token.
 - `timeout` (optional): Timeout for ChatGPT API requests in seconds.
 - `details` (optional): Additional details for label suggestions. For example: SBOM is not misconfig.
+- `excluded-labels` (optional): A comma-separated list of labels to exclude from automatic assignment. For example: 'bug,duplicate'.
 
 ## Example Workflow
 Create a workflow file (e.g., `.github/workflows/auto-labeling.yaml`) with the following content:
@@ -35,6 +36,7 @@ jobs:
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           gh-token: ${{ secrets.MY_PERSONAL_GH_TOKEN }}
+          excluded-labels: "duplicate"
 
     # Add additional steps as needed
 ```

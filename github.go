@@ -78,6 +78,54 @@ func (c *GitHubGraphQLClient) FetchRepoLabels(ctx context.Context, owner, repo s
 	return r.gqlRepo.labels(), nil
 }
 
+type request struct {
+	Query string `json:"query"`
+}
+
+func buildAddCommentRequest(subjectID string, body string) (string, error) {
+	req := request{
+		Query: fmt.Sprintf(`mutation{addComment(input:{subjectId:"%s", body:%s}){clientMutationId}}`, subjectID, body),
+	}
+	b, err := json.Marshal(req)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+func (c *GitHubGraphQLClient) AddComment(ctx context.Context, subjectID string, body string) error {
+	payload, err := buildAddCommentRequest(subjectID, body)
+	if err != nil {
+		return fmt.Errorf("failed to build `addComment` request: %w", err)
+	}
+	if _, err := c.request(ctx, payload); err != nil {
+		return fmt.Errorf("failed to add comment: %w", err)
+	}
+	return nil
+}
+
+func buildAddDiscussionCommentRequest(discussionID string, body string) (string, error) {
+	req := request{
+		Query: fmt.Sprintf(`mutation{addDiscussionComment(input:{discussionId:"%s", body:%s}){clientMutationId}}`, discussionID, body),
+	}
+	b, err := json.Marshal(req)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+func (c *GitHubGraphQLClient) AddDiscussionComment(ctx context.Context, discussionID string, body string) error {
+	payload, err := buildAddDiscussionCommentRequest(discussionID, body)
+	if err != nil {
+		return fmt.Errorf("failed to build `addDiscussionComment` request: %w", err)
+	}
+	if _, err := c.request(ctx, payload); err != nil {
+		return fmt.Errorf("failed to add discussion comment: %w", err)
+	}
+	return nil
+}
+
 func (c *GitHubGraphQLClient) request(ctx context.Context, payload string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.endpoint, strings.NewReader(payload))
 	if err != nil {
